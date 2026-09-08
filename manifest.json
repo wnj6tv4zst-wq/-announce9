@@ -1,0 +1,9 @@
+{
+  "name": "アナウンス9",
+  "short_name": "アナウンス9",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f2f4f3",
+  "theme_color": "#174f33",
+  "lang": "ja"
+}
