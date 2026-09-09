@@ -1,45 +1,533 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#174f33"><title>アナウンス9</title><style>
-*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:#f2f4f3;margin:0;color:#222;padding-bottom:30px}header{background:#174f33;color:#fff;text-align:center;padding:18px 12px 14px;position:sticky;top:0;z-index:30}.app-title{font-size:25px;font-weight:800}.app-sub{font-size:12px;opacity:.9;margin-top:4px}main{padding:12px;max-width:900px;margin:auto}.card{background:#fff;border-radius:18px;padding:14px;margin:12px 0;box-shadow:0 2px 10px rgba(0,0,0,.08)}h2{font-size:19px;margin:0 0 10px;color:#174f33}.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}button,select,input{width:100%;font-size:16px;padding:12px;border-radius:13px;border:1px solid #ccc;margin-top:7px}button{border:none;background:#174f33;color:#fff;font-weight:800}.secondary{background:#e7efe9;color:#174f33}.orange{background:#c46a16}.blue{background:#2369a8}.red{background:#a33333}.timer{font-size:44px;text-align:center;font-weight:900;color:#174f33;margin:8px 0}.output{white-space:pre-wrap;background:#fff8d9;border:1px solid #e2c760;border-radius:12px;padding:14px;line-height:1.75;font-size:17px;min-height:105px}.sticky-output{position:sticky;top:76px;z-index:20}table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid #ddd;padding:8px 5px;text-align:left}th{background:#edf4ef}.small{font-size:13px;color:#666;line-height:1.6}.note{background:#eef7f1;border-left:4px solid #174f33;padding:10px;border-radius:10px;font-size:13px;line-height:1.6}.member-row,.order-row{display:grid;gap:7px;align-items:end;margin:6px 0}.member-row{grid-template-columns:72px 1fr auto}.order-row{grid-template-columns:46px 1fr 1fr}.member-row button{width:auto;padding:11px 14px}.badge{display:inline-block;background:#174f33;color:#fff;border-radius:999px;padding:3px 8px;font-size:12px}label{display:block;font-weight:700;margin-top:9px}
-</style></head><body><header><div class="app-title">⚾ アナウンス9</div><div class="app-sub">2026年度 小松市学童野球放送マニュアル準拠</div></header><main>
-<section class="card"><div class="note">メンバーを登録→スタメン9人の打順・守備を設定→「このオーダーで試合開始」で打者・守備画面へ自動反映します。登録内容はiPhone内に保存できます。</div></section>
-<section class="card"><h2>① メンバー登録</h2><label>チーム名</label><input id="teamName" placeholder="チーム名"><div id="memberRows"></div><div class="grid"><button class="secondary" onclick="addMemberRow()">＋追加</button><button class="secondary" onclick="loadDefaultMembers()">登録済み13人</button></div><div class="grid"><button onclick="saveMembers()">保存</button><button class="secondary" onclick="loadSavedMembers()">保存済み読込</button></div></section>
-<section class="card"><h2>② オーダー設定</h2><div id="orderRows"></div><div class="grid"><button onclick="applyOrder()">このオーダーで試合開始</button><button class="secondary" onclick="loadLastOrder()">前回オーダー</button></div></section>
-<section class="card"><h2>現在のオーダー</h2><table id="orderTable"></table></section>
-<section class="card sticky-output"><h2>アナウンス文</h2><div id="out" class="output">ここにアナウンス文が表示されます。</div><div class="grid"><button class="secondary" onclick="copyText()">コピー</button><button class="secondary" onclick="speakText()">読み上げ</button></div></section>
-<section class="card"><h2>試合時間</h2><div class="timer" id="gameTimer">00:00</div><div class="grid"><button onclick="startGameTimer()">開始</button><button class="secondary" onclick="stopGameTimer()">停止</button><button class="secondary" onclick="resetGameTimer()">リセット</button><button class="orange" onclick="setOutput('試合開始は、〇時〇分です')">開始時刻告知</button></div></section>
-<section class="card"><h2>クーリング・給水</h2><div class="timer" id="breakTimer">00:00</div><div class="grid"><button class="orange" onclick="startBreak(180,'cooling')">☀️ クーリング3分</button><button class="blue" onclick="startBreak(120,'water')">💧 選手給水2分</button><button class="secondary" onclick="pauseBreak()">一時停止</button><button onclick="restartGame()">試合再開</button></div><button class="secondary" onclick="setOutput('審判の方は給水を行います。')">審判の給水</button></section>
-<section class="card"><h2>打者アナウンス</h2><label>回</label><input id="inning" type="number" min="1" value="1"><label>表・裏</label><select id="half"><option>表</option><option>裏</option></select><label>チーム名</label><input id="batTeam" placeholder="チーム名"><label>打者</label><select id="batter"></select><div class="grid"><button onclick="batterFirstLap()">1巡目</button><button class="secondary" onclick="batterLaterLap()">2巡目以降</button></div><button class="secondary" onclick="advanceBatter()">次の打順へ</button></section>
-<section class="card"><h2>現在の守備位置</h2><table id="defTable"></table></section>
-<section class="card"><h2>代打</h2><label>打順</label><input id="phOrder" type="number" min="1" max="9" value="1"><label>交代する選手</label><select id="phOut"></select><label>代打</label><select id="phIn"></select><div class="grid"><button onclick="pinchHit(false)">イニング途中</button><button class="secondary" onclick="pinchHit(true)">イニング先頭</button></div></section>
-<section class="card"><h2>守備交代</h2><label>守備位置</label><select id="defPos"></select><label>交代する選手</label><select id="defOut"></select><label>入る選手</label><select id="defIn"></select><label>打順</label><input id="defOrder" type="number" min="1" max="9" value="1"><button onclick="defensiveSubstitution()">守備交代アナウンス・反映</button></section>
-<section class="card"><h2>シート変更</h2><label>選手</label><select id="shiftPlayer"></select><label>新しい守備位置</label><select id="shiftPos"></select><label>打順</label><input id="shiftOrder" type="number" min="1" max="9" value="1"><button onclick="seatChange()">シート変更アナウンス・反映</button></section>
-<section class="card"><h2>代走・臨時代走</h2><label>ランナー位置</label><select id="runnerBase"><option>ファーストランナー</option><option>セカンドランナー</option><option>サードランナー</option></select><label>交代する選手</label><select id="prOut"></select><label>代走</label><select id="prIn"></select><div class="grid"><button onclick="pinchRun(false)">代走</button><button class="secondary" onclick="pinchRun(true)">臨時代走</button></div></section>
-<section class="card"><h2>タイブレーク</h2><button class="blue" onclick="setOutput('大会規定により　タイブレーク　を行います。\nタイブレーク　はノーアウト　1塁2塁よりおこないます。')">タイブレーク開始</button><label>セカンドランナー</label><select id="tbSecond"></select><label>ファーストランナー</label><select id="tbFirst"></select><button class="secondary" onclick="tiebreakRunners()">ランナー紹介</button></section>
-<section class="card"><h2>訂正</h2><input id="wrongText" placeholder="間違えた内容"><input id="correctText" placeholder="正しい内容"><button class="red" onclick="correction()">訂正アナウンス</button></section>
-</main><script>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#145b37">
+<title>アナウンス9</title>
+<style>
+*{box-sizing:border-box}
+:root{--green:#145b37;--pale:#f3f4ee;--card:#fff;--line:#dedbd0;--red:#d64b3f}
+body{margin:0;background:var(--pale);color:#222;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif}
+header{background:var(--green);color:#fff;padding:calc(18px + env(safe-area-inset-top)) 14px 16px;position:sticky;top:0;z-index:50}
+.title{font-size:22px;font-weight:800;margin-bottom:16px}
+.tabs{background:rgba(0,0,0,.12);border-radius:18px;padding:5px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.tab{border:0;border-radius:15px;background:transparent;color:#dfe9e3;font-weight:800;font-size:18px;padding:14px 6px}
+.tab.active{background:#fbfaf3;color:var(--green)}
+main{padding:12px;max-width:880px;margin:auto;padding-bottom:40px}
+.screen{display:none}.screen.active{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.section-title{color:var(--green);font-weight:800;font-size:18px;margin-bottom:10px;border-left:5px solid var(--red);padding-left:10px}
+label{display:block;font-weight:700;color:#5f6267;margin:8px 0 4px}
+input,select,button{width:100%;font-size:16px;border-radius:13px;padding:12px;border:1px solid #d7d3c8;background:#fff}
+.team-input{font-size:18px;padding:16px}
+.hint{font-size:13px;color:#6f747a;line-height:1.5;margin:8px 0 12px}
+.order-list{border-top:1px dashed #ddd8cb}
+.order-item{display:grid;grid-template-columns:72px 1fr;gap:10px;padding:14px 0;border-bottom:1px dashed #ddd8cb}
+.rank-col{display:flex;flex-direction:column;align-items:center;gap:5px}
+.rank-label{font-size:12px;color:#666;font-weight:700}
+.rank-btn{width:48px;padding:5px;border-radius:10px;background:#fbfaf4;color:var(--green);border:1px solid #ded8ca;font-size:15px;font-weight:800}
+.rank-num{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--green);color:#fff;font-size:24px;font-weight:800}
+.player-grid{display:grid;grid-template-columns:1fr 86px;gap:8px;align-items:center}
+.pos-wrap,.no-wrap{display:grid;grid-template-columns:auto 1fr}
+.prefix{display:flex;align-items:center;justify-content:center;background:var(--green);color:#fff;border-radius:13px 0 0 13px;padding:0 12px;font-weight:800}
+.no-wrap .prefix{background:#767b81}
+.pos-wrap select,.no-wrap input{border-radius:0 13px 13px 0}
+.name-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.name-grid input{font-size:18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.green{background:var(--green);color:#fff;border:0;font-weight:800}
+.soft{background:#e7f0ea;color:var(--green);border:0;font-weight:800}
+.orange{background:#c96d13;color:#fff;border:0;font-weight:800}
+.red{background:#aa3c36;color:#fff;border:0;font-weight:800}
+.big{font-size:18px;padding:15px}
+.output{background:#fff8d9;border:1px solid #e4c75a;border-radius:14px;padding:14px;white-space:pre-wrap;line-height:1.75;font-size:17px;min-height:110px}
+.timer{text-align:center;font-size:50px;font-weight:900;color:var(--green);margin:8px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:9px 6px;border-bottom:1px solid #e4e1d8;text-align:left}
+th{background:#f3f6f4}
+details{margin-top:10px}
+summary{font-weight:800;color:var(--green);padding:6px 0}
+.small{font-size:12px;color:#777}
+
+.game-subtabs{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  background:#e7e8e1;border-radius:16px;margin:12px 0;padding:5px
+}
+.game-subtab{
+  border:0;background:transparent;color:#777;font-weight:800;padding:12px 4px;border-radius:13px
+}
+.game-subtab.active{background:#fff;color:var(--green);box-shadow:0 2px 6px rgba(0,0,0,.08)}
+.game-panel{display:none}.game-panel.active{display:block}
+.field-wrap{background:#1f6842;border-radius:18px;padding:14px}
+.field{position:relative;min-height:610px;background:#206942;border-radius:16px;overflow:hidden;border:4px solid #135131}
+.diamond{
+  position:absolute;width:430px;height:430px;background:#cf925e;
+  transform:rotate(45deg);left:50%;top:250px;margin-left:-215px;border-radius:24px;
+  border:4px solid #daa16d
+}
+.pos-card{
+  position:absolute;width:115px;min-height:86px;background:#fff;border:0;border-radius:15px;
+  box-shadow:0 3px 8px rgba(0,0,0,.24);padding:8px 6px;color:#0587ff;font-weight:800;
+}
+.pos-card.selected{outline:4px solid #ffd54f;transform:scale(1.04)}
+.pos-card .num{display:block;margin:auto auto 4px;background:#eaf2ed;color:var(--green);width:34px;height:30px;border-radius:8px;line-height:30px;font-size:20px}
+.pos-cf{left:50%;top:18px;transform:translateX(-50%)}
+.pos-lf{left:8%;top:118px}
+.pos-rf{right:8%;top:118px}
+.pos-ss{left:28%;top:250px}
+.pos-2b{right:28%;top:250px}
+.pos-3b{left:14%;top:365px}
+.pos-p{left:50%;top:365px;transform:translateX(-50%)}
+.pos-1b{right:14%;top:365px}
+.pos-c{left:50%;bottom:28px;transform:translateX(-50%)}
+.undo-btn{background:#f0f1ec;color:#222;border:0;font-weight:800;font-size:18px;margin:12px 0;padding:16px}
+@media(max-width:600px){
+  .field{min-height:600px}
+  .diamond{width:390px;height:390px;margin-left:-195px;top:260px}
+  .pos-card{width:105px;min-height:82px;font-size:14px}
+  .pos-lf{left:4%}.pos-rf{right:4%}
+  .pos-ss{left:24%}.pos-2b{right:24%}
+  .pos-3b{left:10%}.pos-1b{right:10%}
+}
+
+</style>
+</head>
+<body>
+<header>
+<div class="title">⚾ アナウンス9</div>
+<div class="tabs">
+<button class="tab active" data-tab="members">メンバー</button>
+<button class="tab" data-tab="game">試合</button>
+<button class="tab" data-tab="settings">設定</button>
+</div>
+</header>
+
+<main>
+<section id="members" class="screen active">
+<div class="card">
+<label>チーム名</label>
+<input id="teamName" class="team-input" placeholder="例）珠洲BCクラブジュニア">
+</div>
+<div class="card">
+<div class="section-title">スタメン（打順・シート・氏名）</div>
+<div class="hint">打順は▲▼で入れ替えられます。シート・背番号・名前はその場で変更できます。</div>
+<div id="starterList" class="order-list"></div>
+</div>
+<div class="card">
+<div class="section-title">控え選手</div>
+<div id="benchList"></div>
+<div class="grid2">
+<button class="soft" onclick="addBench()">＋ 控えを追加</button>
+<button class="green" onclick="saveAll()">保存</button>
+</div>
+</div>
+</section>
+
+
+<section id="game" class="screen">
+  <div class="card">
+    <button class="green big" onclick="toggleGuide()" id="guideBtn">使い方　開く ▼</button>
+    <div id="guideBox" style="display:none;margin-top:10px" class="hint">
+      守備変更は、審判のコール順に1手ずつ操作します。まず移動元の選手をタップし、次に移動先の守備位置をタップしてください。
+      代打・代走・打者紹介は上の切替タブから操作できます。
+    </div>
+  </div>
+
+  <div class="game-subtabs">
+    <button class="game-subtab active" data-gamepanel="defensePanel">守備変更</button>
+    <button class="game-subtab" data-gamepanel="pinchHitPanel">代打</button>
+    <button class="game-subtab" data-gamepanel="pinchRunPanel">代走</button>
+    <button class="game-subtab" data-gamepanel="batterPanel">打者紹介</button>
+  </div>
+
+  <section id="defensePanel" class="game-panel active">
+    <div class="card">
+      <div class="section-title">守備変更（審判のコール順に入力）</div>
+      <div class="field-wrap">
+        <div class="field">
+          <div class="diamond"></div>
+          <button class="pos-card pos-cf" data-pos="センター" onclick="pickPosition('センター')"></button>
+          <button class="pos-card pos-lf" data-pos="レフト" onclick="pickPosition('レフト')"></button>
+          <button class="pos-card pos-rf" data-pos="ライト" onclick="pickPosition('ライト')"></button>
+          <button class="pos-card pos-ss" data-pos="ショート" onclick="pickPosition('ショート')"></button>
+          <button class="pos-card pos-2b" data-pos="セカンド" onclick="pickPosition('セカンド')"></button>
+          <button class="pos-card pos-3b" data-pos="サード" onclick="pickPosition('サード')"></button>
+          <button class="pos-card pos-p" data-pos="ピッチャー" onclick="pickPosition('ピッチャー')"></button>
+          <button class="pos-card pos-1b" data-pos="ファースト" onclick="pickPosition('ファースト')"></button>
+          <button class="pos-card pos-c" data-pos="キャッチャー" onclick="pickPosition('キャッチャー')"></button>
+        </div>
+      </div>
+      <div id="fieldInstruction" class="hint">まず移動元の選手をタップしてください。</div>
+    </div>
+
+    <button class="undo-btn" onclick="undoDefense()">↩️ 直前の操作を取り消す</button>
+
+    <div class="card">
+      <div class="section-title">アナウンス文</div>
+      <div id="out" class="output">ここにアナウンス文が表示されます。</div>
+      <div class="grid2" style="margin-top:8px">
+        <button class="soft" onclick="copyText()">コピー</button>
+        <button class="soft" onclick="speakText()">読み上げ</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">クーリング・給水</div>
+      <div id="breakTimer" class="timer">00:00</div>
+      <div class="grid2">
+        <button class="orange" onclick="startBreak(180,'cooling')">☀️ クーリング3分</button>
+        <button class="soft" onclick="startBreak(120,'water')">💧 選手給水2分</button>
+        <button class="soft" onclick="pauseBreak()">一時停止</button>
+        <button class="green" onclick="restartGame()">試合再開</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="pinchHitPanel" class="game-panel">
+    <div class="card">
+      <div class="section-title">代打</div>
+      <label>打順</label><input id="phOrder" type="number" min="1" max="9" value="1">
+      <label>交代する選手</label><select id="phOut"></select>
+      <label>代打</label><select id="phIn"></select>
+      <div class="grid2">
+        <button class="green" onclick="pinchHit(false)">イニング途中</button>
+        <button class="soft" onclick="pinchHit(true)">イニング先頭</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="pinchRunPanel" class="game-panel">
+    <div class="card">
+      <div class="section-title">代走・臨時代走</div>
+      <label>ランナー位置</label>
+      <select id="runnerBase"><option>ファーストランナー</option><option>セカンドランナー</option><option>サードランナー</option></select>
+      <label>交代する選手</label><select id="prOut"></select>
+      <label>代走</label><select id="prIn"></select>
+      <div class="grid2">
+        <button class="green" onclick="pinchRun(false)">代走</button>
+        <button class="soft" onclick="pinchRun(true)">臨時代走</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="batterPanel" class="game-panel">
+    <div class="card">
+      <div class="section-title">打者紹介</div>
+      <label>回</label><input id="inning" type="number" min="1" value="1">
+      <label>表・裏</label><select id="half"><option>表</option><option>裏</option></select>
+      <label>打者</label><select id="batter"></select>
+      <div class="grid2">
+        <button class="green" onclick="batterFirstLap()">1巡目</button>
+        <button class="soft" onclick="batterLaterLap()">2巡目以降</button>
+      </div>
+      <button class="soft big" onclick="advanceBatter()">次の打順へ</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">試合時間</div>
+      <div id="gameTimer" class="timer">00:00</div>
+      <div class="grid2">
+        <button class="green" onclick="startGameTimer()">開始</button>
+        <button class="soft" onclick="stopGameTimer()">停止</button>
+        <button class="soft" onclick="resetGameTimer()">リセット</button>
+        <button class="orange" onclick="setOutput('試合開始は、〇時〇分です')">開始時刻告知</button>
+      </div>
+    </div>
+  </section>
+
+  <div style="display:none">
+    <select id="defOut"></select><select id="defIn"></select><select id="defPos"></select>
+    <input id="defOrder" type="number" value="1">
+    <select id="shiftPlayer"></select><select id="shiftPos"></select>
+    <input id="shiftOrder" type="number" value="1">
+    <select id="tbSecond"></select><select id="tbFirst"></select>
+    <table id="defTable"></table>
+  </div>
+</section>
+<section id="settings" class="screen">
+<div class="card">
+<div class="section-title">設定</div>
+<label>チーム名</label>
+<input id="settingsTeamName">
+<button class="green" onclick="syncTeamName()">チーム名を反映</button>
+</div>
+<div class="card">
+<div class="section-title">データ</div>
+<button class="soft" onclick="loadDefaults()">登録済み13人に戻す</button>
+<button class="red" onclick="clearSaved()">保存データを消去</button>
+</div>
+</section>
+</main>
+
+<script>
 const POS=['ピッチャー','キャッチャー','ファースト','セカンド','サード','ショート','レフト','センター','ライト'];
-const DEFAULT=[['1','宮田たいせい'],['2','北濱いつき'],['3','上野きしん'],['4','久田ゆうと'],['5','山崎はると'],['6','川元きざし'],['7','天徳寺りき'],['8','田畑かいと'],['9','竹平かずき'],['10','久田ひろと'],['11','稲川あん'],['12','北濱なお'],['13','山崎ゆいと']].map(x=>({no:x[0],name:x[1]}));
-let members=[],lineup=[],defense={},gameSeconds=0,gameInterval=null,breakRemain=0,breakInterval=null;const $=id=>document.getElementById(id),fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0'),setOutput=t=>$('out').textContent=t;
-function addMemberRow(no='',name=''){const d=document.createElement('div');d.className='member-row';d.innerHTML=`<input class="m-no" placeholder="背番号" value="${no}"><input class="m-name" placeholder="選手名" value="${name}"><button class="red" onclick="this.parentElement.remove()">×</button>`;$('memberRows').appendChild(d)}
-function loadDefaultMembers(){$('memberRows').innerHTML='';DEFAULT.forEach(p=>addMemberRow(p.no,p.name));collectMembers();rebuildOrderRows();refreshAllSelects()}
-function collectMembers(){members=[...document.querySelectorAll('.member-row')].map(r=>({no:r.querySelector('.m-no').value.trim(),name:r.querySelector('.m-name').value.trim()})).filter(p=>p.no&&p.name)}
-function saveMembers(){collectMembers();localStorage.setItem('a9m',JSON.stringify(members));localStorage.setItem('a9t',$('teamName').value.trim());rebuildOrderRows();refreshAllSelects();alert('保存しました')}
-function loadSavedMembers(){const s=JSON.parse(localStorage.getItem('a9m')||'[]');$('teamName').value=localStorage.getItem('a9t')||'';$('memberRows').innerHTML='';(s.length?s:DEFAULT).forEach(p=>addMemberRow(p.no,p.name));collectMembers();rebuildOrderRows();refreshAllSelects()}
-function memberOptions(sel=''){return members.map((p,i)=>`<option value="${i}" ${String(i)===String(sel)?'selected':''}>${p.no}番 ${p.name}</option>`).join('')}
-function rebuildOrderRows(saved=null){collectMembers();$('orderRows').innerHTML='';for(let i=0;i<9;i++){const d=document.createElement('div');d.className='order-row';const si=saved?.[i]?.memberIndex??(i<members.length?i:''),sp=saved?.[i]?.pos??POS[i];d.innerHTML=`<div><span class="badge">${i+1}番</span></div><select class="order-member">${memberOptions(si)}</select><select class="order-pos">${POS.map(p=>`<option ${p===sp?'selected':''}>${p}</option>`).join('')}</select>`;$('orderRows').appendChild(d)}}
-function applyOrder(){collectMembers();const rows=[...document.querySelectorAll('.order-row')],used=new Set();lineup=[];for(let i=0;i<9;i++){const idx=Number(rows[i].querySelector('.order-member').value);if(used.has(idx)){alert('同じ選手が2回選ばれています');return}used.add(idx);const p=members[idx],pos=rows[i].querySelector('.order-pos').value;lineup.push({order:String(i+1),no:p.no,name:p.name,pos,memberIndex:idx})}defense={};lineup.forEach(p=>defense[p.pos]={no:p.no,name:p.name});localStorage.setItem('a9o',JSON.stringify(lineup));localStorage.setItem('a9t',$('teamName').value.trim());$('batTeam').value=$('teamName').value.trim();refreshGameUI();setOutput('オーダーを登録しました。')}
-function loadLastOrder(){const s=JSON.parse(localStorage.getItem('a9o')||'[]');if(!s.length){alert('前回オーダーがありません');return}rebuildOrderRows(s)}
-function allPlayerOptions(){return members.map((p,i)=>`<option value="${i}">${p.no}番 ${p.name}</option>`).join('')}
-function refreshAllSelects(){collectMembers();const o=allPlayerOptions();['phOut','phIn','defOut','defIn','shiftPlayer','prOut','prIn','tbSecond','tbFirst'].forEach(id=>$(id).innerHTML=o);['defPos','shiftPos'].forEach(id=>$(id).innerHTML=POS.map(p=>`<option>${p}</option>`).join(''))}
-function refreshGameUI(){$('orderTable').innerHTML='<tr><th>打順</th><th>守備</th><th>選手</th></tr>'+lineup.map(p=>`<tr><td>${p.order}番</td><td>${p.pos}</td><td>${p.no}番 ${p.name}</td></tr>`).join('');$('batter').innerHTML=lineup.map((p,i)=>`<option value="${i}">${p.order}番 ${p.pos} ${p.name}</option>`).join('');renderDefense();refreshAllSelects()}
-function getPlayer(id){return members[Number($(id).value)]}function currentPositionByName(n){return POS.find(p=>defense[p]?.name===n)||''}function renderDefense(){$('defTable').innerHTML='<tr><th>守備</th><th>選手</th></tr>'+POS.map(p=>`<tr><td>${p}</td><td>${defense[p]?defense[p].no+'番 '+defense[p].name:'－'}</td></tr>`).join('')}
-function startGameTimer(){if(gameInterval)return;gameInterval=setInterval(()=>{gameSeconds++;$('gameTimer').textContent=fmt(gameSeconds)},1000)}function stopGameTimer(){clearInterval(gameInterval);gameInterval=null}function resetGameTimer(){stopGameTimer();gameSeconds=0;$('gameTimer').textContent='00:00'}
-function startBreak(sec,type){clearInterval(breakInterval);breakRemain=sec;$('breakTimer').textContent=fmt(breakRemain);setOutput(type==='cooling'?'只今より、クーリングタイムに入ります。選手・審判の方は、給水を行ってください':'選手給水の為、試合を中断いたします。いましばらくお待ちください');breakInterval=setInterval(()=>{breakRemain--;$('breakTimer').textContent=fmt(Math.max(0,breakRemain));if(breakRemain<=0){clearInterval(breakInterval);breakInterval=null;setOutput('お待たせいたしました。試合を再開いたします。')}},1000)}function pauseBreak(){clearInterval(breakInterval);breakInterval=null}function restartGame(){setOutput('お待たせいたしました。試合を再開いたします。')}
-function batterFirstLap(){if(!lineup.length)return alert('先にオーダー設定をしてください');const p=lineup[Number($('batter').value)],team=$('batTeam').value||$('teamName').value||'〇〇';setOutput(`${$('inning').value}回の${$('half').value}、${team}の攻撃は、\n${p.order}番、${p.pos}、${p.name}\n${p.pos}、${p.name}、背番号${p.no}`)}function batterLaterLap(){if(!lineup.length)return alert('先にオーダー設定をしてください');const p=lineup[Number($('batter').value)],team=$('batTeam').value||$('teamName').value||'〇〇';setOutput(`${$('inning').value}回の${$('half').value}、${team}の攻撃は、\n${p.order}番、${p.pos}、${p.name}`)}function advanceBatter(){const b=$('batter');b.value=(Number(b.value)+1)%lineup.length;batterLaterLap()}
-function pinchHit(lead){const o=getPlayer('phOut'),n=getPlayer('phIn'),ord=$('phOrder').value,team=$('batTeam').value||$('teamName').value||'〇〇';setOutput(lead?`${$('inning').value}回の${$('half').value}、${team}の攻撃は、\n${ord}番、${o.name}に代わりまして\n${n.name}\nバッターは${n.name}、背番号${n.no}`:`${ord}番、${o.name}に代わりまして\n${n.name}\nバッターは${n.name}、背番号${n.no}`)}
-function defensiveSubstitution(){const o=getPlayer('defOut'),n=getPlayer('defIn'),pos=$('defPos').value,ord=$('defOrder').value,team=$('teamName').value||'〇〇';defense[pos]={no:n.no,name:n.name};renderDefense();setOutput(`${team}、選手の交代をお知らせいたします。\n${pos}、${o.name}に代わりまして、\n${n.name}\n${ord}番、${pos}、${n.name}、背番号${n.no}`)}
-function seatChange(){const p=getPlayer('shiftPlayer'),np=$('shiftPos').value,ord=$('shiftOrder').value,team=$('teamName').value||'〇〇',op=currentPositionByName(p.name);if(op&&op!==np){const occ=defense[np];defense[op]=occ;defense[np]={no:p.no,name:p.name}}else defense[np]={no:p.no,name:p.name};renderDefense();setOutput(`${team}、シートの変更をお知らせいたします。\n${op||'現在の守備位置'}の${p.name}が${np}\n${ord}番、${np}、${p.name}、以上に代わります。`)}
-function pinchRun(temp){const o=getPlayer('prOut'),n=getPlayer('prIn'),b=$('runnerBase').value;setOutput(temp?`当該打者${o.name}の臨時代走${n.name}\n臨時代走${n.name}`:`${b}${o.name}に代わりまして\n${n.name}\n${b}は${n.name}、背番号${n.no}`)}
-function tiebreakRunners(){const s=getPlayer('tbSecond'),f=getPlayer('tbFirst'),team=$('teamName').value||'〇〇';setOutput(`${team}\nセカンドランナー　${s.name}、背番号${s.no}\nファーストランナー　${f.name}、背番号${f.no}`)}function correction(){setOutput(`失礼いたしました。\n${$('wrongText').value||'〇〇'}ではなく、${$('correctText').value||'△△'}です。`)}async function copyText(){try{await navigator.clipboard.writeText($('out').textContent);alert('コピーしました！')}catch{}}function speakText(){const u=new SpeechSynthesisUtterance($('out').textContent);u.lang='ja-JP';speechSynthesis.cancel();speechSynthesis.speak(u)}
-function boot(){const s=JSON.parse(localStorage.getItem('a9m')||'[]');$('teamName').value=localStorage.getItem('a9t')||'';$('memberRows').innerHTML='';(s.length?s:DEFAULT).forEach(p=>addMemberRow(p.no,p.name));collectMembers();const o=JSON.parse(localStorage.getItem('a9o')||'[]');rebuildOrderRows(o.length?o:null);if(o.length){lineup=o;defense={};lineup.forEach(p=>defense[p.pos]={no:p.no,name:p.name});refreshGameUI()}else{refreshAllSelects();renderDefense()}}boot();
-</script></body></html>
+const DEFAULT_STARTERS=[
+{no:'6',last:'川元',first:'きざし',pos:'ピッチャー'},
+{no:'2',last:'北濱',first:'いつき',pos:'キャッチャー'},
+{no:'3',last:'上野',first:'きしん',pos:'ファースト'},
+{no:'5',last:'山崎',first:'はると',pos:'セカンド'},
+{no:'4',last:'久田',first:'ゆうと',pos:'サード'},
+{no:'10',last:'久田',first:'ひろと',pos:'ショート'},
+{no:'7',last:'天徳寺',first:'りき',pos:'レフト'},
+{no:'1',last:'宮田',first:'たいせい',pos:'センター'},
+{no:'9',last:'竹平',first:'かずき',pos:'ライト'}
+];
+const DEFAULT_BENCH=[
+{no:'8',last:'田畑',first:'かいと'},
+{no:'11',last:'稲川',first:'あん'},
+{no:'12',last:'北濱',first:'なお'},
+{no:'13',last:'山崎',first:'ゆいと'}
+];
+
+let starters=[],bench=[],gameSeconds=0,gameInterval=null,breakRemain=0,breakInterval=null;
+const $=id=>document.getElementById(id);
+const nameOf=p=>`${p.last}${p.first}`;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+const setOutput=t=>$('out').textContent=t;
+
+document.querySelectorAll('.tab').forEach(btn=>{
+btn.addEventListener('click',()=>{
+document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+btn.classList.add('active');$(btn.dataset.tab).classList.add('active');
+});
+});
+
+function renderStarters(){
+$('starterList').innerHTML='';
+starters.forEach((p,i)=>{
+const row=document.createElement('div');row.className='order-item';
+row.innerHTML=`
+<div class="rank-col">
+<div class="rank-label">打順</div>
+<button class="rank-btn" onclick="moveStarter(${i},-1)">▲</button>
+<div class="rank-num">${i+1}</div>
+<button class="rank-btn" onclick="moveStarter(${i},1)">▼</button>
+</div>
+<div>
+<div class="player-grid">
+<div class="pos-wrap">
+<div class="prefix">シート</div>
+<select onchange="starters[${i}].pos=this.value">${POS.map(x=>`<option ${x===p.pos?'selected':''}>${x}</option>`).join('')}</select>
+</div>
+<div class="no-wrap">
+<div class="prefix">背番号</div>
+<input value="${p.no}" onchange="starters[${i}].no=this.value">
+</div>
+</div>
+<div class="name-grid">
+<input value="${p.last}" placeholder="姓" onchange="starters[${i}].last=this.value">
+<input value="${p.first}" placeholder="名" onchange="starters[${i}].first=this.value">
+</div>
+</div>`;
+$('starterList').appendChild(row);
+});
+}
+function renderBench(){
+$('benchList').innerHTML='';
+bench.forEach((p,i)=>{
+const d=document.createElement('div');d.className='order-item';
+d.innerHTML=`<div class="rank-col"><div class="rank-num" style="background:#777">${i+1}</div></div>
+<div>
+<div class="no-wrap"><div class="prefix">背番号</div><input value="${p.no}" onchange="bench[${i}].no=this.value"></div>
+<div class="name-grid">
+<input value="${p.last}" placeholder="姓" onchange="bench[${i}].last=this.value">
+<input value="${p.first}" placeholder="名" onchange="bench[${i}].first=this.value">
+</div>
+</div>`;
+$('benchList').appendChild(d);
+});
+}
+function moveStarter(i,dir){
+const j=i+dir;if(j<0||j>=starters.length)return;
+[starters[i],starters[j]]=[starters[j],starters[i]];
+renderStarters();refreshGame();
+}
+function addBench(){bench.push({no:'',last:'',first:''});renderBench()}
+function saveAll(){
+localStorage.setItem('announce9_team',$('teamName').value);
+localStorage.setItem('announce9_starters',JSON.stringify(starters));
+localStorage.setItem('announce9_bench',JSON.stringify(bench));
+refreshGame();alert('保存しました');
+}
+function loadDefaults(){
+starters=JSON.parse(JSON.stringify(DEFAULT_STARTERS));
+bench=JSON.parse(JSON.stringify(DEFAULT_BENCH));
+renderStarters();renderBench();refreshGame();renderField();
+}
+function clearSaved(){
+localStorage.removeItem('announce9_team');
+localStorage.removeItem('announce9_starters');
+localStorage.removeItem('announce9_bench');
+loadDefaults();$('teamName').value='';$('settingsTeamName').value='';
+}
+function syncTeamName(){$('teamName').value=$('settingsTeamName').value;saveAll()}
+function allPlayers(){return [...starters,...bench].filter(p=>p.no||p.last||p.first)}
+function playerOptions(){return allPlayers().map((p,i)=>`<option value="${i}">${p.no} ${nameOf(p)}</option>`).join('')}
+function getPlayer(id){return allPlayers()[Number($(id).value)]}
+function refreshGame(){
+$('batter').innerHTML=starters.map((p,i)=>`<option value="${i}">${i+1}番 ${p.pos} ${nameOf(p)}</option>`).join('');
+const opts=playerOptions();
+['phOut','phIn','defOut','defIn','shiftPlayer','prOut','prIn','tbSecond','tbFirst'].forEach(id=>$(id).innerHTML=opts);
+['defPos','shiftPos'].forEach(id=>$(id).innerHTML=POS.map(p=>`<option>${p}</option>`).join(''));
+renderDefense();
+}
+function renderDefense(){
+$('defTable').innerHTML='<tr><th>守備</th><th>選手</th></tr>'+
+POS.map(pos=>{const p=starters.find(x=>x.pos===pos);return `<tr><td>${pos}</td><td>${p?`${p.no} ${nameOf(p)}`:'－'}</td></tr>`}).join('');
+}
+function team(){return $('teamName').value||'〇〇'}
+function batterFirstLap(){
+const i=Number($('batter').value),p=starters[i];
+setOutput(`${$('inning').value}回の${$('half').value}、${team()}の攻撃は、
+${i+1}番、${p.pos}、${nameOf(p)}
+${p.pos}、${nameOf(p)}、背番号${p.no}`);
+}
+function batterLaterLap(){
+const i=Number($('batter').value),p=starters[i];
+setOutput(`${$('inning').value}回の${$('half').value}、${team()}の攻撃は、
+${i+1}番、${p.pos}、${nameOf(p)}`);
+}
+function advanceBatter(){const b=$('batter');b.value=(Number(b.value)+1)%starters.length;batterLaterLap()}
+function pinchHit(lead){
+const o=getPlayer('phOut'),n=getPlayer('phIn'),order=$('phOrder').value;
+setOutput(lead?`${$('inning').value}回の${$('half').value}、${team()}の攻撃は、
+${order}番、${nameOf(o)}に代わりまして
+${nameOf(n)}
+バッターは${nameOf(n)}、背番号${n.no}`:
+`${order}番、${nameOf(o)}に代わりまして
+${nameOf(n)}
+バッターは${nameOf(n)}、背番号${n.no}`);
+}
+function defensiveSubstitution(){
+const o=getPlayer('defOut'),n=getPlayer('defIn'),pos=$('defPos').value,order=$('defOrder').value;
+const target=starters.findIndex(x=>nameOf(x)===nameOf(o));
+if(target>=0)starters[target]={...n,pos};
+renderStarters();refreshGame();
+setOutput(`${team()}、選手の交代をお知らせいたします。
+${pos}、${nameOf(o)}に代わりまして、
+${nameOf(n)}
+${order}番、${pos}、${nameOf(n)}、背番号${n.no}`);
+}
+function seatChange(){
+const p=getPlayer('shiftPlayer'),newPos=$('shiftPos').value,order=$('shiftOrder').value;
+const target=starters.findIndex(x=>nameOf(x)===nameOf(p));
+const old=target>=0?starters[target].pos:'';
+if(target>=0)starters[target].pos=newPos;
+renderStarters();refreshGame();
+setOutput(`${team()}、シートの変更をお知らせいたします。
+${old}の${nameOf(p)}が${newPos}
+${order}番、${newPos}、${nameOf(p)}、以上に代わります。`);
+}
+function pinchRun(temp){
+const o=getPlayer('prOut'),n=getPlayer('prIn'),base=$('runnerBase').value;
+setOutput(temp?`当該打者${nameOf(o)}の臨時代走${nameOf(n)}
+臨時代走${nameOf(n)}`:
+`${base}${nameOf(o)}に代わりまして
+${nameOf(n)}
+${base}は${nameOf(n)}、背番号${n.no}`);
+}
+function tiebreakRunners(){
+const s=getPlayer('tbSecond'),f=getPlayer('tbFirst');
+setOutput(`${team()}
+セカンドランナー　${nameOf(s)}、背番号${s.no}
+ファーストランナー　${nameOf(f)}、背番号${f.no}`);
+}
+function startGameTimer(){if(gameInterval)return;gameInterval=setInterval(()=>{gameSeconds++;$('gameTimer').textContent=fmt(gameSeconds)},1000)}
+function stopGameTimer(){clearInterval(gameInterval);gameInterval=null}
+function resetGameTimer(){stopGameTimer();gameSeconds=0;$('gameTimer').textContent='00:00'}
+function startBreak(sec,type){
+clearInterval(breakInterval);breakRemain=sec;$('breakTimer').textContent=fmt(breakRemain);
+setOutput(type==='cooling'?'只今より、クーリングタイムに入ります。選手・審判の方は、給水を行ってください':'選手給水の為、試合を中断いたします。いましばらくお待ちください');
+breakInterval=setInterval(()=>{breakRemain--;$('breakTimer').textContent=fmt(Math.max(0,breakRemain));if(breakRemain<=0){clearInterval(breakInterval);breakInterval=null;restartGame()}},1000)
+}
+function pauseBreak(){clearInterval(breakInterval);breakInterval=null}
+function restartGame(){setOutput('お待たせいたしました。試合を再開いたします。')}
+async function copyText(){try{await navigator.clipboard.writeText($('out').textContent);alert('コピーしました')}catch{}}
+function speakText(){if(!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance($('out').textContent);u.lang='ja-JP';speechSynthesis.cancel();speechSynthesis.speak(u)}
+
+let defenseHistory=[];
+let selectedFromPos=null;
+
+document.querySelectorAll('.game-subtab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.game-subtab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.game-panel').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.gamepanel).classList.add('active');
+  });
+});
+
+function toggleGuide(){
+  const box=$('guideBox'),btn=$('guideBtn');
+  const open=box.style.display!=='none';
+  box.style.display=open?'none':'block';
+  btn.textContent=open?'使い方　開く ▼':'使い方　閉じる ▲';
+}
+
+function renderField(){
+  document.querySelectorAll('.pos-card').forEach(btn=>{
+    const pos=btn.dataset.pos;
+    const p=starters.find(x=>x.pos===pos);
+    btn.innerHTML=p?`<span class="num">${p.no}</span>${p.last}`:`<span class="num">－</span>空き`;
+    btn.classList.toggle('selected',selectedFromPos===pos);
+  });
+}
+
+function pickPosition(pos){
+  const here=starters.find(x=>x.pos===pos);
+  if(!selectedFromPos){
+    if(!here){setOutput(`${pos}には選手がいません。`);return}
+    selectedFromPos=pos;
+    $('fieldInstruction').textContent=`${pos}の${nameOf(here)}を選択中。次に移動先をタップしてください。`;
+    renderField();
+    return;
+  }
+  if(selectedFromPos===pos){
+    selectedFromPos=null;
+    $('fieldInstruction').textContent='まず移動元の選手をタップしてください。';
+    renderField();
+    return;
+  }
+
+  const fromIndex=starters.findIndex(x=>x.pos===selectedFromPos);
+  const toIndex=starters.findIndex(x=>x.pos===pos);
+  if(fromIndex<0)return;
+
+  defenseHistory.push(JSON.stringify(starters));
+  const mover=starters[fromIndex];
+  const displaced=toIndex>=0?starters[toIndex]:null;
+  const oldPos=selectedFromPos;
+
+  starters[fromIndex].pos=pos;
+  if(displaced) starters[toIndex].pos=oldPos;
+
+  const order=fromIndex+1;
+  setOutput(`${team()}、シートの変更をお知らせいたします。\n${oldPos}の${nameOf(mover)}が${pos}\n${order}番、${pos}、${nameOf(mover)}、以上に代わります。`);
+
+  selectedFromPos=null;
+  $('fieldInstruction').textContent='変更を反映しました。続けて変更する場合は移動元をタップしてください。';
+  renderStarters();refreshGame();renderField();
+}
+
+function undoDefense(){
+  if(!defenseHistory.length){setOutput('取り消せる操作はありません。');return}
+  starters=JSON.parse(defenseHistory.pop());
+  selectedFromPos=null;
+  renderStarters();refreshGame();renderField();
+  $('fieldInstruction').textContent='直前の守備変更を取り消しました。';
+  setOutput('直前の守備変更を取り消しました。');
+}
+
+function boot(){
+starters=JSON.parse(localStorage.getItem('announce9_starters')||'null')||JSON.parse(JSON.stringify(DEFAULT_STARTERS));
+bench=JSON.parse(localStorage.getItem('announce9_bench')||'null')||JSON.parse(JSON.stringify(DEFAULT_BENCH));
+$('teamName').value=localStorage.getItem('announce9_team')||'';
+$('settingsTeamName').value=$('teamName').value;
+renderStarters();renderBench();refreshGame();renderField();
+}
+boot();
+</script>
+</body>
+</html>
