@@ -1,4 +1,4 @@
-ふ<!doctype html>
+<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8">
@@ -694,26 +694,32 @@ function confirmSubstitution(){
 
   if(!outPlayer || !inPlayer) return;
 
+  // 交代する選手の守備位置を引き継ぐ
   const position = outPlayer.pos;
 
-  // 出場する控え選手が、交代選手の守備位置を引き継ぐ
-  const newStarter = {
+  // 控え選手をスタメンへ
+  starters[outIndex] = {
     ...inPlayer,
     pos: position
   };
 
   // 退く選手を控えへ
-  const newBenchPlayer = {
-    ...outPlayer
+  bench[inIndex] = {
+    no: outPlayer.no,
+    last: outPlayer.last,
+    first: outPlayer.first
   };
 
-  // 選手を入れ替える
-  starters[outIndex] = newStarter;
-  bench[inIndex] = newBenchPlayer;
-
   // 保存
-  localStorage.setItem('announce9_starters', JSON.stringify(starters));
-  localStorage.setItem('announce9_bench', JSON.stringify(bench));
+  localStorage.setItem(
+    'announce9_starters',
+    JSON.stringify(starters)
+  );
+
+  localStorage.setItem(
+    'announce9_bench',
+    JSON.stringify(bench)
+  );
 
   // アナウンス文
   const text =
@@ -731,6 +737,7 @@ function confirmSubstitution(){
   renderField();
   renderSubstitutionSelects();
 }
+  
 
 function confirmDefenseChanges(){
   if(!pendingDefenseChanges.length){
