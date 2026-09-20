@@ -674,7 +674,64 @@ function renderSubstitutionSelects(){
       `<option value="${i}">背番号${p.no}　${nameOf(p)}</option>`
     ).join('');
 }
-function confirmDefenseChanges(){
+}  ← renderSubstitutionSelects の終わり
+function confirmSubstitution(){
+  const outSelect = $('subOutPlayer');
+  const inSelect = $('subInPlayer');
+
+  if(!outSelect || !inSelect) return;
+
+  if(outSelect.value === '' || inSelect.value === ''){
+    setOutput('交代する選手と、出場する控え選手を選んでください。');
+    return;
+  }
+
+  const outIndex = Number(outSelect.value);
+  const inIndex = Number(inSelect.value);
+
+  const outPlayer = starters[outIndex];
+  const inPlayer = bench[inIndex];
+
+  if(!outPlayer || !inPlayer) return;
+
+  const position = outPlayer.pos;
+
+  // 出場する控え選手が、交代選手の守備位置を引き継ぐ
+  const newStarter = {
+    ...inPlayer,
+    pos: position
+  };
+
+  // 退く選手を控えへ
+  const newBenchPlayer = {
+    ...outPlayer
+  };
+
+  // 選手を入れ替える
+  starters[outIndex] = newStarter;
+  bench[inIndex] = newBenchPlayer;
+
+  // 保存
+  localStorage.setItem('announce9_starters', JSON.stringify(starters));
+  localStorage.setItem('announce9_bench', JSON.stringify(bench));
+
+  // アナウンス文
+  const text =
+    `${team()}、選手の交代をお知らせいたします。\n` +
+    `${position}の${nameOf(outPlayer)}に代わりまして、${nameOf(inPlayer)}。\n` +
+    `${position}、${nameOf(inPlayer)}。\n` +
+    `以上に代わります。`;
+
+  setOutput(text);
+
+  // 画面を更新
+  renderStarters();
+  renderBench();
+  refreshGame();
+  renderField();
+  renderSubstitutionSelects();
+}
+
 function confirmDefenseChanges(){
   if(!pendingDefenseChanges.length){
     setOutput('守備変更はまだ入力されていません。');
