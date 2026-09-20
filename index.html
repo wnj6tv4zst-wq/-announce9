@@ -203,49 +203,100 @@ summary{font-weight:800;color:var(--green);padding:6px 0}
     <button class="game-subtab" data-gamepanel="pinchRunPanel">代走</button>
     <button class="game-subtab" data-gamepanel="batterPanel">打者紹介</button>
   </div>
+<section id="defensePanel" class="game-panel active">
+  <div class="card">
+    <div class="section-title">守備変更（審判のコール順に入力）</div>
 
-  <section id="defensePanel" class="game-panel active">
-    <div class="card">
-      <div class="section-title">守備変更（審判のコール順に入力）</div>
-      <div class="field-wrap">
-        <div class="field">
-          <div class="diamond"></div>
-          <button class="pos-card pos-cf" data-pos="センター" onclick="pickPosition('センター')"></button>
-          <button class="pos-card pos-lf" data-pos="レフト" onclick="pickPosition('レフト')"></button>
-          <button class="pos-card pos-rf" data-pos="ライト" onclick="pickPosition('ライト')"></button>
-          <button class="pos-card pos-ss" data-pos="ショート" onclick="pickPosition('ショート')"></button>
-          <button class="pos-card pos-2b" data-pos="セカンド" onclick="pickPosition('セカンド')"></button>
-          <button class="pos-card pos-3b" data-pos="サード" onclick="pickPosition('サード')"></button>
-          <button class="pos-card pos-p" data-pos="ピッチャー" onclick="pickPosition('ピッチャー')"></button>
-          <button class="pos-card pos-1b" data-pos="ファースト" onclick="pickPosition('ファースト')"></button>
-          <button class="pos-card pos-c" data-pos="キャッチャー" onclick="pickPosition('キャッチャー')"></button>
-        </div>
+    <div class="field-wrap">
+      <div class="field">
+        <div class="diamond"></div>
+
+        <button class="pos-card pos-cf"
+          data-pos="センター"
+          onclick="pickPosition('センター')"></button>
+
+        <button class="pos-card pos-lf"
+          data-pos="レフト"
+          onclick="pickPosition('レフト')"></button>
+
+        <button class="pos-card pos-rf"
+          data-pos="ライト"
+          onclick="pickPosition('ライト')"></button>
+
+        <button class="pos-card pos-ss"
+          data-pos="ショート"
+          onclick="pickPosition('ショート')"></button>
+
+        <button class="pos-card pos-2b"
+          data-pos="セカンド"
+          onclick="pickPosition('セカンド')"></button>
+
+        <button class="pos-card pos-3b"
+          data-pos="サード"
+          onclick="pickPosition('サード')"></button>
+
+        <button class="pos-card pos-p"
+          data-pos="ピッチャー"
+          onclick="pickPosition('ピッチャー')"></button>
+
+        <button class="pos-card pos-1b"
+          data-pos="ファースト"
+          onclick="pickPosition('ファースト')"></button>
+
+        <button class="pos-card pos-c"
+          data-pos="キャッチャー"
+          onclick="pickPosition('キャッチャー')"></button>
       </div>
-      <div id="fieldInstruction" class="hint">まず移動元の選手をタップしてください。</div>
     </div>
 
-    <button class="undo-btn" onclick="undoDefense()">↩️ 直前の操作を取り消す</button>
+    <div id="fieldInstruction" class="hint">
+      まず移動元の選手をタップしてください。
+    </div>
+  </div>
 
-    <div class="card">
-      <div class="section-title">アナウンス文</div>
-      <div id="out" class="output">ここにアナウンス文が表示されます。</div>
-      <div class="grid2" style="margin-top:8px">
-        <button class="soft" onclick="copyText()">コピー</button>
-        <button class="soft" onclick="speakText()">読み上げ</button>
-      </div>
+  <button class="undo-btn" onclick="undoDefense()">
+    ↩️ 直前の操作を取り消す
+  </button>
+
+  <div class="card">
+    <div class="section-title">アナウンス文</div>
+
+    <div id="out" class="output">
+      ここにアナウンス文が表示されます。
     </div>
 
-    
-      
-      
-      
-  
-    
+    <div class="grid2" style="margin-top:8px">
+      <button class="soft" onclick="copyText()">コピー</button>
+      <button class="soft" onclick="speakText()">読み上げ</button>
+    </div>
+  </div>
 
-  </section>
+  <div class="card">
+    <div class="section-title">クーリング・給水</div>
 
+    <div id="breakTimer" class="timer">00:00</div>
+
+    <div class="grid2">
+      <button class="orange" onclick="startBreak(180,'cooling')">
+        ☀️ クーリング3分
+      </button>
+
+      <button class="soft" onclick="startBreak(120,'water')">
+        💧 選手給水2分
+      </button>
+
+      <button class="soft" onclick="pauseBreak()">
+        一時停止
+      </button>
+
+      <button class="green" onclick="restartGame()">
+        試合再開
+      </button>
+    </div>
+  </div>
+</section>
   <section id="pinchHitPanel" class="game-panel">
-    <div class="card">
+  <div class="card">
       <div class="section-title">代打</div>
       <label>打順</label><input id="phOrder" type="number" min="1" max="9" value="1">
       <label>交代する選手</label><select id="phOut"></select>
