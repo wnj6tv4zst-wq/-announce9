@@ -624,6 +624,15 @@ function pickPosition(pos){
   order: fromIndex + 1
 });
 
+if(displaced){
+  pendingDefenseChanges.push({
+    player: displaced,
+    from: pos,
+    to: oldPos,
+    order: toIndex + 1
+  });
+}
+
   selectedFromPos=null;
   $('fieldInstruction').textContent='変更を反映しました。続けて変更する場合は移動元をタップしてください。';
   renderStarters();refreshGame();renderField();
