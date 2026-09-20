@@ -256,7 +256,24 @@ summary{font-weight:800;color:var(--green);padding:6px 0}
   ✅ 守備変更を確定
 </button>
   </div>
+<div class="card" style="margin-top:16px;">
+  <div class="section-title">選手交代</div>
 
+  <div class="hint">
+    交代する守備選手と、出場する控え選手を選んでください。
+  </div>
+
+  <div class="grid2" style="margin-top:12px;">
+    <select id="subOutPlayer"></select>
+    <select id="subInPlayer"></select>
+  </div>
+
+  <button class="green big"
+          style="margin-top:12px;"
+          onclick="confirmSubstitution()">
+    🔄 選手交代を確定
+  </button>
+</div>
   <button class="undo-btn" onclick="undoDefense()">
     ↩️ 直前の操作を取り消す
   </button>
@@ -639,6 +656,25 @@ if(displaced){
 
 }
 
+function renderSubstitutionSelects(){
+  const outSelect = $('subOutPlayer');
+  const inSelect = $('subInPlayer');
+
+  if(!outSelect || !inSelect) return;
+
+  outSelect.innerHTML =
+    '<option value="">交代する選手</option>' +
+    starters.map((p,i) =>
+      `<option value="${i}">${p.pos}　${nameOf(p)}</option>`
+    ).join('');
+
+  inSelect.innerHTML =
+    '<option value="">出場する控え選手</option>' +
+    bench.map((p,i) =>
+      `<option value="${i}">背番号${p.no}　${nameOf(p)}</option>`
+    ).join('');
+}
+
 function confirmDefenseChanges(){
   if(!pendingDefenseChanges.length){
     setOutput('守備変更はまだ入力されていません。');
@@ -689,7 +725,7 @@ starters=JSON.parse(localStorage.getItem('announce9_starters')||'null')||JSON.pa
 bench=JSON.parse(localStorage.getItem('announce9_bench')||'null')||JSON.parse(JSON.stringify(DEFAULT_BENCH));
 $('teamName').value=localStorage.getItem('announce9_team')||'';
 $('settingsTeamName').value=$('teamName').value;
-renderStarters();renderBench();refreshGame();renderField();
+renderStarters();renderBench();refreshGame();renderField();renderSubstitutionSelects();
 }
 boot();
 </script>
