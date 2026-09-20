@@ -252,6 +252,9 @@ summary{font-weight:800;color:var(--green);padding:6px 0}
     <div id="fieldInstruction" class="hint">
       まず移動元の選手をタップしてください。
     </div>
+    <button class="green big" onclick="confirmDefenseChanges()" style="margin-top:12px;">
+  ✅ 守備変更を確定
+</button>
   </div>
 
   <button class="undo-btn" onclick="undoDefense()">
@@ -559,6 +562,7 @@ function speakText(){if(!('speechSynthesis'in window))return;const u=new SpeechS
 
 let defenseHistory=[];
 let selectedFromPos=null;
+let pendingDefenseChanges=[];
 
 document.querySelectorAll('.game-subtab').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -613,22 +617,64 @@ function pickPosition(pos){
   starters[fromIndex].pos=pos;
   if(displaced) starters[toIndex].pos=oldPos;
 
-  const order=fromIndex+1;
-  setOutput(`${team()}、シートの変更をお知らせいたします。\n${oldPos}の${nameOf(mover)}が${pos}\n${order}番、${pos}、${nameOf(mover)}、以上に代わります。`);
+  pendingDefenseChanges.push({
+  player: mover,
+  from: oldPos,
+  to: pos,
+  order: fromIndex + 1
+});
 
   selectedFromPos=null;
   $('fieldInstruction').textContent='変更を反映しました。続けて変更する場合は移動元をタップしてください。';
   renderStarters();refreshGame();renderField();
+
 }
 
+function confirmDefenseChanges(){
+  if(!pendingDefenseChanges.length){
+    setOutput('守備変更はまだ入力されていません。');
+    return;
+  }
+
+  let text=`${team()}、シートの変更をお知らせいたします。\n`;
+
+  pendingDefenseChanges.forEach(change=>{
+    text += `${change.from}の${nameOf(change.player)}が${change.to}\n`;
+  });
+
+  text += '以上に代わります。';
+
+  setOutput(text);
+  pendingDefenseChanges=[];
+  $('fieldInstruction').textContent='守備変更を確定しました。次の変更は移動元の選手をタップしてください。';
+}
 function undoDefense(){
-  if(!defenseHistory.length){setOutput('取り消せる操作はありません。');return}
+  if(!defenseHistory.length){
+    setOutput('取り消せる操作はありません。');
+    return;
+  }
+
   starters=JSON.parse(defenseHistory.pop());
   selectedFromPos=null;
-  renderStarters();refreshGame();renderField();
-  $('fieldInstruction').textContent='直前の守備変更を取り消しました。';
-  setOutput('直前の守備変更を取り消しました。');
+
+  if(pendingDefenseChanges.length){
+    pendingDefenseChanges.pop();
+  }
+
+  renderStarters();
+  refreshGame();
+  renderField();
+
+  $('fieldInstruction').textContent=
+    '直前の守備変更を取り消しました。';
+
+
+setOutput('直前の守備変更を取り消しました。');
 }
+
+function boot(){
+  starters=JSON.parse(localStorage.getItem(...
+
 
 function boot(){
 starters=JSON.parse(localStorage.getItem('announce9_starters')||'null')||JSON.parse(JSON.stringify(DEFAULT_STARTERS));
